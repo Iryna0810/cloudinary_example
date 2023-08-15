@@ -1,13 +1,13 @@
 import path from "path";
 import fs from "fs/promises"
-import HttpError from "../helpers/HttpError.js";
+import {HttpError, cloudinary} from "../helpers/index.js";
 import User from "../models/users.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config"
 
 const { JWT_SECRET } = process.env;
-const avatarPath = path.resolve("public", "avatar");
+// const avatarPath = path.resolve("public", "avatar");
 
 const signup = async (req, res, next) => {
         try {
@@ -17,12 +17,19 @@ const signup = async (req, res, next) => {
             throw HttpError(409, "Email in use");
             }
             const hashPassword = await bcrypt.hash(password, 10);
-            const { path: oldPath, filename } = req.file;
-            const newPath = path.join(avatarPath, filename);
+            const { path: filePath, filename } = req.file;
+            // const newPath = path.join(avatarPath, filename);
 
-            await fs.rename(oldPath, newPath);        
-            const avatarURL = path.join('avatar', filename)
-            const newUser = await User.create({ ...req.body, avatarURL, password: hashPassword });
+            // await fs.rename(oldPath, newPath);        
+            // const avatarURL = path.join('avatar', filename)
+            const {url: avatar} = await cloudinary.uploader.upload(filePath, {
+                folder: "avatar",
+            })
+            
+            console.log(avatar);
+
+            const newUser = await User.create({ ...req.body, avatar, password: hashPassword });
+    await fs.unlink(filePath);
 
             res.status(201).json({
             name: newUser.name,

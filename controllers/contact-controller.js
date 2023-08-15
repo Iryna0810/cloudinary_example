@@ -1,5 +1,5 @@
 import Contact from "../models/contact.js";
-import { HttpError } from "../helpers/index.js";
+import { HttpError} from "../helpers/index.js";
 
 const getAll = async (req, res, next) => {
     try {
